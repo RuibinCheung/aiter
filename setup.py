@@ -276,6 +276,7 @@ class ForcePlatlibDistribution(Distribution):
     def has_ext_modules(self):
         return True
 
+breakpoint()
 
 setup(
     name=PACKAGE_NAME,
