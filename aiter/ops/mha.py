@@ -16,6 +16,10 @@ from ..jit.utils.mha_recipes import (
 from ..utility import dtypes
 
 
+import os
+_ENV_AITER_USE_CK_FA = os.environ.get("AITER_USE_CK_FA", "0") == "1"
+
+
 def cmdGenFunc_mha_fwd(
     q: Tensor,
     k: Tensor,
@@ -1284,7 +1288,7 @@ def _flash_attn_forward(
     _validate_cu("cu_seqlens_q", cu_seqlens_q)
     _validate_cu("cu_seqlens_kv", cu_seqlens_kv)
 
-    if can_impl_fmha_v3_fwd() and seqlen_q > 128:  # Prefer CK for decode cases
+    if _ENV_AITER_USE_CK_FA and (can_impl_fmha_v3_fwd() and seqlen_q > 128):  # Prefer CK for decode cases
         out, softmax_lse, S_dmask, rng_state = fmha_v3_fwd(
             q,
             k,
@@ -1629,7 +1633,7 @@ def _flash_attn_backward(
 
     can_impl_fmha_v3_bwd_ |= can_impl_fmha_v3_bwd_gfx950()
 
-    if (
+    if _ENV_AITER_USE_CK_FA and (
         can_impl_fmha_v3_bwd_ and seqlen_q > 16
     ):  # ck fmha bwd has optimization for seqlen_q <= 16
         if dq is not None:
